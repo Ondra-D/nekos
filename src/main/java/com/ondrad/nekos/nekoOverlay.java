@@ -54,10 +54,7 @@ public class nekoOverlay extends Overlay {
             String replacedresponse2 = replacedresponse.replace("\"}", "");
 
             URL imageUrl = new URL(replacedresponse2);
-            File imageFile = new File("src/main/resources/neko.png");
-            ImageIO.write(ImageIO.read(imageUrl), "png", imageFile);
-
-            image = ImageIO.read(imageFile);
+            image = ImageIO.read(imageUrl);
 
         } else {
             System.out.println("GET Request did not work");
