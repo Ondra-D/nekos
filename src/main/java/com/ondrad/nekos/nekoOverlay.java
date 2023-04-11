@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -54,7 +53,11 @@ public class nekoOverlay extends Overlay {
             String replacedresponse2 = replacedresponse.replace("\"}", "");
 
             URL imageUrl = new URL(replacedresponse2);
-            image = ImageIO.read(imageUrl);
+
+            synchronized (ImageIO.class)
+            {
+                image = ImageIO.read(imageUrl);
+            }
 
         } else {
             System.out.println("GET Request did not work");
