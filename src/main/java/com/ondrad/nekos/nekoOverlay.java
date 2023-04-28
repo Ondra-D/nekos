@@ -71,7 +71,9 @@ public class nekoOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        graphics.drawImage(image, config.xpos(), config.ypos(), config.dimension().width, config.dimension().height, null);
+        AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) config.opacity() / 100);
+        graphics.setComposite(ac);
+        graphics.drawImage(image.getScaledInstance(config.dimension().width, config.dimension().height, Image.SCALE_SMOOTH), config.xpos(), config.ypos(), null);
         return null;
     }
 }
