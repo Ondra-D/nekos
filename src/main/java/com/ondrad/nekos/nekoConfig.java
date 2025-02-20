@@ -78,4 +78,14 @@ public interface nekoConfig extends Config
  		return 100;
 	}
 
+	@ConfigItem(
+			keyName = "opacity",
+			name = "Opacity",
+			description = "Opacity of the image in %"
+	)
+	default int opacity()
+	{
+ 		return 100;
+	}
+
 }
