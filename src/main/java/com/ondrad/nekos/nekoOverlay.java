@@ -4,23 +4,19 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
-import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.awt.image.VolatileImage;
 
 public class nekoOverlay extends Overlay {
 
     private BufferedImage image;
+    private VolatileImage volatileImage;
+    private final Object imageLock = new Object();
 
     @Inject
     private nekoConfig config;
-
 
     @Inject
     nekoOverlay() {
@@ -28,50 +24,61 @@ public class nekoOverlay extends Overlay {
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
     }
 
+    @Override
+    public Dimension render(Graphics2D graphics) {
+        synchronized (imageLock) {
+            if (volatileImage != null) {
+                // Apply opacity
+                AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) config.opacity() / 100);
+                graphics.setComposite(alphaComposite);
 
-    public void GETRequest() throws IOException {
-        String urlName = "https://nekos.life/api/v2/img/neko";
-        URL urlForGetReq = new URL(urlName);
-        String read;
-        HttpURLConnection connection = (HttpURLConnection) urlForGetReq.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Cache-Control", "no-cache");
-        int codeResponse = connection.getResponseCode();
-        if (codeResponse == HttpURLConnection.HTTP_OK) {
-            InputStreamReader isrObj = new InputStreamReader(connection.getInputStream());
-            BufferedReader bf = new BufferedReader(isrObj);
-            StringBuilder responseStr = new StringBuilder();
-            while ((read = bf.readLine()) != null) {
-                responseStr.append(read);
+                // Draw the image final volatileImage
+                graphics.drawImage(volatileImage, config.xpos(), config.ypos(), null);
             }
-            bf.close();
-            connection.disconnect();
-
-            //IDK how to make this better
-            String responseStrString = responseStr.toString();
-            String replacedresponse = responseStrString.replace("{\"url\":\"", "");
-            String replacedresponse2 = replacedresponse.replace("\"}", "");
-
-            URL imageUrl = new URL(replacedresponse2);
-
-            synchronized (ImageIO.class)
-            {
-                image = ImageIO.read(imageUrl);
-            }
-
-        } else {
-            System.out.println("GET Request did not work");
         }
-
+        return null;
     }
 
+    public void updateImage(BufferedImage newImage) {
+        synchronized (imageLock) {
+            this.image = newImage;
+            // Scale the image
+            Image scaledImage = image.getScaledInstance(config.dimension().width, config.dimension().height, Image.SCALE_SMOOTH);
+            BufferedImage bufferedScaledImage = toBufferedImage(scaledImage);
+            this.volatileImage = createVolatileImage(bufferedScaledImage);
+        }
+    }
 
+    private BufferedImage toBufferedImage(Image image) {
+        if (image instanceof BufferedImage) {
+            return (BufferedImage) image;
+        }
 
+        // Create a BufferedImage
+        BufferedImage bufferedImage = new BufferedImage(
+                image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
-    @Override
-    public Dimension render(Graphics2D graphics)
-    {
-        graphics.drawImage(image, config.xpos(), config.ypos(), config.dimension().width, config.dimension().height, null);
-        return null;
+        // Draw the image onto the BufferedImage
+        Graphics2D g2d = bufferedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+
+        return bufferedImage;
+    }
+
+    private VolatileImage createVolatileImage(BufferedImage image) {
+        GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice()
+                .getDefaultConfiguration();
+
+        // Create a VolatileImage
+        VolatileImage volatileImage = gc.createCompatibleVolatileImage(image.getWidth(), image.getHeight(), Transparency.TRANSLUCENT);
+
+        // Draw the BufferedImage onto the VolatileImage
+        Graphics2D g2d = volatileImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+
+        return volatileImage;
     }
 }

@@ -1,22 +1,24 @@
 package com.ondrad.nekos;
 
 import com.google.inject.Provides;
-
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
-import javax.swing.Timer;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @PluginDescriptor(
 		name = "Nekos",
-		description = "Displays a cute neko",
-		tags = {"anime", "neko", "overlay", "catgirl"}
+		description = "Displays a cute neko on the screen",
+		tags = {"anime", "neko", "overlay", "catgirl, kitsune, cat"}
 )
 public class nekoPlugin extends Plugin {
 
@@ -28,40 +30,53 @@ public class nekoPlugin extends Plugin {
 
 	@Inject
 	private nekoOverlay overlay;
-	private Timer timer;
-
+	private ScheduledExecutorService executorService;
 
 	@Override
-	protected void startUp(){
-
+	protected void startUp() {
 		overlayManager.add(overlay);
-
+		executorService = Executors.newSingleThreadScheduledExecutor();
 		int delaySeconds = config.delaySeconds();
-		int delayMillis = delaySeconds * 1000;
-
-		timer = new Timer(delayMillis, e -> {
-			try {
-				overlay.GETRequest();
-			} catch (IOException ex) {
-				throw new RuntimeException(ex);
-			}
-		});
-		timer.start();
-
+		executorService.scheduleAtFixedRate(this::fetchNekoImage, 0, delaySeconds, TimeUnit.SECONDS);
 	}
 
+	private void fetchNekoImage() {
+		String endpoint;
+		switch (config.type()) {
+			case NEKOS:
+				endpoint = "https://nekos.life/api/v2/img/neko";
+				break;
+			case CATS:
+				endpoint = "https://nekos.life/api/v2/img/meow";
+				break;
+			case KITSUNE:
+				endpoint = "https://nekos.life/api/v2/img/fox_girl";
+				break;
+			default:
+				endpoint = "https://nekos.life/api/v2/img/neko";
+				break;
+		}
+
+		try {
+			BufferedImage image = GetRequest.GETRequest(endpoint);
+			if (image != null) {
+				overlay.updateImage(image);
+			}
+		} catch (IOException | InterruptedException ex) {
+			log.error("Failed to fetch image", ex);
+		}
+	}
 
 	@Override
-	protected void shutDown()
-	{
+	protected void shutDown() {
 		overlayManager.remove(overlay);
-		timer.stop();
+		if (executorService != null) {
+			executorService.shutdown();
+		}
 	}
-
 
 	@Provides
-	nekoConfig provideConfig(ConfigManager configManager)
-	{
+	nekoConfig provideConfig(ConfigManager configManager) {
 		return configManager.getConfig(nekoConfig.class);
 	}
 }
