@@ -33,8 +33,6 @@ public class GetRequest {
             } finally {
                 connection.disconnect();
             }
-        } else {
-            System.out.println("GET Request did not work");
         }
         return null;
     }
