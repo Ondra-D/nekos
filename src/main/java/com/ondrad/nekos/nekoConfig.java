@@ -3,6 +3,7 @@ package com.ondrad.nekos;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Range;
 
 import java.awt.*;
 
@@ -15,15 +16,15 @@ public interface nekoConfig extends Config
 		CATS,
 		KITSUNE
 	}
-		@ConfigItem(
-				position = 1,
-				keyName = "type",
-				name = "Type:",
-				description = "Choose the type of image to display"
-		)
-		default ImageType type() {
-			return ImageType.NEKOS;
-		}
+	@ConfigItem(
+			position = 1,
+			keyName = "type",
+			name = "Type:",
+			description = "Choose the type of image to display"
+	)
+	default ImageType type() {
+		return ImageType.NEKOS;
+	}
 
 
 	@ConfigItem(
@@ -51,6 +52,9 @@ public interface nekoConfig extends Config
 			name = "Delay in seconds",
 			description = "The delay between images in seconds"
 	)
+	@Range(
+			min = 1
+	)
 	default int delaySeconds()
 	{
 		return 10;
@@ -73,9 +77,13 @@ public interface nekoConfig extends Config
 			name = "Opacity",
 			description = "Opacity of the image in %"
 	)
+	@Range(
+			min = 0,
+			max = 100
+	)
 	default int opacity()
 	{
- 		return 100;
+		return 100;
 	}
 
 }

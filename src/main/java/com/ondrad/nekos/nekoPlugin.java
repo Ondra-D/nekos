@@ -7,6 +7,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import okhttp3.OkHttpClient;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class nekoPlugin extends Plugin {
 
 	@Inject
-	private nekoConfig config;
+	private nekoConfig 	config;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -58,11 +59,13 @@ public class nekoPlugin extends Plugin {
 		}
 
 		try {
-			BufferedImage image = GetRequest.GETRequest(endpoint);
+			OkHttpClient client = new OkHttpClient();
+			GetRequest getRequest = new GetRequest(client);
+			BufferedImage image = getRequest.GETRequest(endpoint);
 			if (image != null) {
 				overlay.updateImage(image);
 			}
-		} catch (IOException | InterruptedException ex) {
+		} catch (IOException ex) {
 			log.error("Failed to fetch image", ex);
 		}
 	}
