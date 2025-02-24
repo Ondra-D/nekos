@@ -4,13 +4,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import javax.imageio.ImageIO;
+import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class GetRequest {
     private final OkHttpClient client;
-
+@Inject
     public GetRequest(OkHttpClient client) {
         this.client = client;
     }

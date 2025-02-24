@@ -1,3 +1,4 @@
+
 package com.ondrad.nekos;
 
 import com.google.inject.Provides;
@@ -30,6 +31,9 @@ public class nekoPlugin extends Plugin {
 	private OverlayManager overlayManager;
 
 	@Inject
+	private GetRequest getRequest;
+
+	@Inject
 	private nekoOverlay overlay;
 	private ScheduledExecutorService executorService;
 
@@ -59,10 +63,8 @@ public class nekoPlugin extends Plugin {
 		}
 
 		try {
-			OkHttpClient client = new OkHttpClient();
-			GetRequest getRequest = new GetRequest(client);
 			BufferedImage image = getRequest.GETRequest(endpoint);
-			if (image != null) {
+				if (image != null) {
 				overlay.updateImage(image);
 			}
 		} catch (IOException ex) {
