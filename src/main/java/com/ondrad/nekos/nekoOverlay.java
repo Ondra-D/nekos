@@ -19,6 +19,7 @@ public class nekoOverlay extends Overlay {
     }
 
     private volatile ImageState imageState = new ImageState(null, false);
+
     @Inject
     private nekoConfig config;
 
@@ -30,14 +31,9 @@ public class nekoOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-
         final ImageState currentState = imageState;
-
         if (currentState.loaded && currentState.image != null) {
-
             graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) config.opacity() / 100));
-
-
             graphics.drawImage(
                     currentState.image,
                     config.xpos(),
@@ -46,11 +42,8 @@ public class nekoOverlay extends Overlay {
                     config.dimension().height,
                     null
             );
-
         }
-
-
-        return new Dimension(1, 1);
+        return null;
     }
 
     public void updateImage(BufferedImage newImage) {
