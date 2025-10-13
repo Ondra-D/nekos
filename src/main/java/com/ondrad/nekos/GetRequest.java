@@ -1,11 +1,12 @@
 package com.ondrad.nekos;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
@@ -18,10 +19,12 @@ import java.util.List;
 @Slf4j
 public class GetRequest {
     private final OkHttpClient client;
+    private final Gson gson;
 
     @Inject
-    public GetRequest(OkHttpClient client) {
+    public GetRequest(OkHttpClient client, Gson gson) {
         this.client = client;
+        this.gson = gson;
     }
 
     public List<BufferedImage> GETRequest(String endpoint) throws IOException {
@@ -43,14 +46,11 @@ public class GetRequest {
             }
 
             String jsonResponse = body.string();
-            if (jsonResponse == null) {
-                return images;
-            }
             jsonResponse = jsonResponse.trim();
 
             try {
-                JSONObject obj = new JSONObject(jsonResponse);
-                String imageUrl = obj.optString("url", null);
+                JsonObject obj = gson.fromJson(jsonResponse, JsonObject.class);
+                String imageUrl = obj.has("url") ? obj.get("url").getAsString() : null;
                 if (imageUrl != null && !imageUrl.isEmpty()) {
                     BufferedImage img = fetchImage(imageUrl);
                     if (img != null) {
